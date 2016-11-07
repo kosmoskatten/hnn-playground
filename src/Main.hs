@@ -9,7 +9,7 @@ main :: IO ()
 main = do
     net     <- createNetwork 25 [10] 3
     trained <- trainWithReport net 10000 20 train
-    forM_ train $ \sample -> do
+    forM_ test $ \sample -> do
         let out = output trained sigmoid (fst sample)
         printf "::> Output %s\n" (show out)
         printf "::> Expect %s\n" (show $ snd sample)
@@ -96,6 +96,73 @@ train =
         , 1, 0, 0, 0, 0
         , 1, 0, 0, 0, 0
         , 1, 0, 0, 0, 0
+        , 1, 1, 1, 1, 1
+        ] --> V.fromList [0, 0, 1]
+    ]
+
+test :: Samples Float
+test =
+    [ V.fromList
+        [ 0, 1, 1, 0, 0
+        , 0, 1, 0, 1, 0
+        , 0, 1, 1, 1, 0
+        , 0, 1, 0, 1, 0
+        , 0, 1, 0, 1, 0
+        ] --> V.fromList [1, 0, 0]
+    , V.fromList
+        [ 1, 1, 1, 1, 0
+        , 1, 0, 0, 0, 1
+        , 1, 1, 1, 1, 1
+        , 1, 0, 0, 1, 1
+        , 1, 0, 0, 0, 1
+        ] --> V.fromList [1, 0, 0]
+    , V.fromList
+        [ 0, 1, 1, 1, 0
+        , 1, 0, 0, 1, 0
+        , 1, 1, 1, 1, 0
+        , 1, 0, 0, 1, 1
+        , 1, 0, 0, 1, 1
+        ] --> V.fromList [1, 0, 0]
+    , V.fromList
+        [ 1, 1, 0, 0, 0
+        , 1, 1, 1, 0, 0
+        , 1, 1, 0, 0, 0
+        , 1, 0, 1, 0, 0
+        , 1, 1, 0, 0, 0
+        ] --> V.fromList [0, 1, 0]
+    , V.fromList
+        [ 1, 1, 1, 1, 0
+        , 1, 0, 1, 0, 0
+        , 1, 1, 0, 0, 0
+        , 1, 0, 1, 0, 0
+        , 1, 1, 1, 0, 0
+        ] --> V.fromList [0, 1, 0]
+    , V.fromList
+        [ 1, 1, 1, 1, 1
+        , 1, 0, 0, 1, 1
+        , 1, 1, 1, 0, 0
+        , 1, 0, 0, 1, 0
+        , 1, 1, 1, 1, 1
+        ] --> V.fromList [0, 1, 0]
+    , V.fromList
+        [ 0, 0, 1, 1, 1
+        , 0, 1, 1, 0, 0
+        , 1, 0, 0, 0, 0
+        , 0, 1, 1, 0, 0
+        , 0, 0, 1, 1, 1
+        ] --> V.fromList [0, 0, 1]
+    , V.fromList
+        [ 0, 1, 1, 1, 1
+        , 1, 1, 0, 0, 0
+        , 1, 1, 0, 0, 0
+        , 1, 1, 0, 0, 0
+        , 0, 1, 1, 1, 1
+        ] --> V.fromList [0, 0, 1]
+    , V.fromList
+        [ 1, 1, 1, 1, 1
+        , 1, 0, 0, 0, 0
+        , 1, 0, 0, 0, 0
+        , 1, 1, 0, 0, 0
         , 1, 1, 1, 1, 1
         ] --> V.fromList [0, 0, 1]
     ]
