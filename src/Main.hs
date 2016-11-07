@@ -5,15 +5,23 @@ import           Control.Monad        (foldM, forM_)
 import qualified Data.Vector.Storable as V
 import           Text.Printf          (printf)
 
+import           Mnist                (mnistFromFile)
+
 main :: IO ()
-main = do
+main = mnistDigits
+
+mnistDigits :: IO ()
+mnistDigits = do
+    Right samples <- mnistFromFile "datasets/mnist_train_10.csv"
+    net           <- createNetwork 784 [30] 10
+    trained       <- trainWithReport net 10000 20 samples
+    testWithReport trained samples
+
+simpleDigits :: IO ()
+simpleDigits = do
     net     <- createNetwork 25 [10] 3
     trained <- trainWithReport net 10000 20 train
-    forM_ test $ \sample -> do
-        let out = output trained sigmoid (fst sample)
-        printf "::> Output %s\n" (show out)
-        printf "::> Expect %s\n" (show $ snd sample)
-        putStrLn "==="
+    testWithReport trained test
 
 trainWithReport :: Network Float -> Int -> Int -> Samples Float -> IO (Network Float)
 trainWithReport net' epochs reports samples = do
@@ -25,6 +33,14 @@ trainWithReport net' epochs reports samples = do
                 printf "==> Done. Error %f\n" err
                 return newnet
           ) net' bursts
+
+testWithReport :: Network Float -> Samples Float -> IO ()
+testWithReport net samples =
+    forM_ samples $ \sample -> do
+        let out = output net sigmoid (fst sample)
+        printf "::> Output %s\n" (show out)
+        printf "::> Expect %s\n" (show $ snd sample)
+        putStrLn "==="
 
 epochSet :: Int -> Int -> [Int]
 epochSet epochs 0 = [epochs]
