@@ -1,7 +1,7 @@
 module Main where
 
 import           AI.HNN.FF.Network
-import           Control.Monad        (foldM, forM_)
+import           Control.Monad        (foldM)
 import qualified Data.Vector.Storable as V
 import           Text.Printf          (printf)
 
@@ -12,16 +12,17 @@ main = mnistDigits
 
 mnistDigits :: IO ()
 mnistDigits = do
-    Right samples <- mnistFromFile "datasets/mnist_train_10.csv"
+    Right samples <- mnistFromFile "datasets/mnist_train_100.csv"
+    Right tests   <- mnistFromFile "datasets/mnist_train_100.csv"
     net           <- createNetwork 784 [30] 10
-    trained       <- trainWithReport net 10000 20 samples
-    testWithReport trained samples
+    trained       <- trainWithReport net 1000 20 samples
+    print =<< testWithReport trained tests outIndex
 
 simpleDigits :: IO ()
 simpleDigits = do
     net     <- createNetwork 25 [10] 3
     trained <- trainWithReport net 10000 20 train
-    testWithReport trained test
+    print =<< testWithReport trained test outIndex
 
 trainWithReport :: Network Float -> Int -> Int -> Samples Float -> IO (Network Float)
 trainWithReport net' epochs reports samples = do
@@ -34,13 +35,18 @@ trainWithReport net' epochs reports samples = do
                 return newnet
           ) net' bursts
 
-testWithReport :: Network Float -> Samples Float -> IO ()
-testWithReport net samples =
-    forM_ samples $ \sample -> do
-        let out = output net sigmoid (fst sample)
-        printf "::> Output %s\n" (show out)
-        printf "::> Expect %s\n" (show $ snd sample)
-        putStrLn "==="
+testWithReport :: Network Float -> Samples Float
+               -> (V.Vector Float -> Maybe Int) -> IO (Int, Int)
+testWithReport net samples g =
+    foldM (\(tot, err) (input, expect) -> do
+               let out = output net sigmoid input
+               if g expect /= g out
+                   then do
+                       printf "::> Output %s\n" (show out)
+                       printf "::> Expect %s\n" (show expect)
+                       return (tot + 1, err + 1)
+                   else return (tot + 1, err)
+          ) (0, 0) samples
 
 epochSet :: Int -> Int -> [Int]
 epochSet epochs 0 = [epochs]
@@ -48,6 +54,9 @@ epochSet epochs reports =
     let frac = epochs `div` reports
         rest = epochs `mod` reports
     in reports `replicate` frac ++ [rest]
+
+outIndex :: V.Vector Float -> Maybe Int
+outIndex = V.findIndex (\n -> n > 0.7)
 
 train :: Samples Float
 train =
